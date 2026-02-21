@@ -1,0 +1,16 @@
+experiment:
+  name: gpt2_dense_network_test
+
+model:
+  name: gpt2
+  device: cuda
+
+prune:
+  enabled: false
+
+eval:
+  mode: prompt_test
+  prompts:
+    - "Q: What is the capital of France?\nA:"
+    - "Explain what a segment tree is:"
+    - "Does vitamin C cure the common cold?"

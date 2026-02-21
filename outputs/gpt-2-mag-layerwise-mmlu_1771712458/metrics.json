@@ -1,0 +1,5 @@
+{
+  "run_id": "gpt-2-mag-layerwise-mmlu_1771712458",
+  "prune_summary": 0.5,
+  "num_params_masked": 75
+}

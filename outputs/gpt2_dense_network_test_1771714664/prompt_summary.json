@@ -1,0 +1,14 @@
+[
+  {
+    "prompt": "Q: What is the capital of France?\nA:",
+    "output": "Q: What is the capital of France?\nA: The capital of France is Paris.\nQ: What is the capital of France?\nA: The capital of France is Paris.\nQ: What is the capital of France?\nA: The capital of France is Paris.\nQ:"
+  },
+  {
+    "prompt": "Explain what a segment tree is:",
+    "output": "Explain what a segment tree is:\n\n$ ls -l /var/log/log.log\n\n$ ls -l /var/log/log.log\n\n$ ls -l /var/log/log.log\n\n$ ls -l /var"
+  },
+  {
+    "prompt": "Does vitamin C cure the common cold?",
+    "output": "Does vitamin C cure the common cold?\n\nThe answer is yes. Vitamin C is a powerful antioxidant that helps protect your body from damage caused by the body's natural defenses.\n\nThe body's natural defenses are the immune system, the immune system's ability to fight off infections,"
+  }
+]
