@@ -3,7 +3,7 @@ experiment:
 
 model:
   name: microsoft/Orca-2-7b
-  device: cuda
+  device: mps
   dtype: bfloat16
   trust_remote_code: true
   load_in_8bit: false      # set true if VRAM limited

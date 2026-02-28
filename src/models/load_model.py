@@ -4,7 +4,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 def load_model(cfg):
     name = cfg.get("name")
-    device = cfg.get("device", "cuda" if torch.cuda.is_available() else "cpu")
+    device = "mps"
 
     tokenizer = AutoTokenizer.from_pretrained(name)
     if tokenizer.pad_token is None:
