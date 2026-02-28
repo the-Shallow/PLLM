@@ -1,0 +1,46 @@
+experiment:
+  name: orca-2-7b-mag-layerwise-prompttest
+
+model:
+  name: microsoft/Orca-2-7b
+  device: cuda
+  dtype: bfloat16
+  trust_remote_code: true
+  load_in_8bit: false      # set true if VRAM limited
+  attn_implementation: flash_attention_2
+
+prune:
+  enabled: false
+  method: magnitude
+
+  include:
+    - "model.layers.*.self_attn.q_proj.weight"
+    - "model.layers.*.self_attn.k_proj.weight"
+    - "model.layers.*.self_attn.v_proj.weight"
+    - "model.layers.*.self_attn.o_proj.weight"
+    - "model.layers.*.mlp.gate_proj.weight"
+    - "model.layers.*.mlp.up_proj.weight"
+    - "model.layers.*.mlp.down_proj.weight"
+
+  exclude:
+    - "lm_head"
+    - "model.embed_tokens"
+    - "model.norm"
+    - "input_layernorm"
+    - "post_attention_layernorm"
+
+  schedule:
+    type: piecewise_by_layer
+    rules:
+      # Orca-2-7B has 32 transformer layers
+      - { layer_range: [0,7], sparsity: 0.4 }
+      - { layer_range: [8,15], sparsity: 0.5 }
+      - { layer_range: [16,23], sparsity: 0.6 }
+      - { layer_range: [24,31], sparsity: 0.7 }
+
+eval:
+  mode: prompt_test
+  prompts:
+    - "Q: What is the capital of France?\nA:"
+    - "Explain what a segment tree is:"
+    - "Does vitamin C cure the common cold?"
