@@ -26,7 +26,7 @@ def wanda_prune(model, ratio=0.5, prune_n=0, prune_m=0, nsamples=128):
         handles = []
         for name in wrapped_layers:
             handles.append(subset[name].register_forward_hook(add_batch(name)))
-
+        
         for j in range(nsamples):
             with torch.no_grad():
                 outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask, position_ids=position_ids)[0]
