@@ -1,0 +1,39 @@
+experiment:
+  name: gpt-2-mag-layerwise-mmlu
+
+
+model:
+  name: gpt2
+  device: cuda
+  dtype: float16
+
+prune:
+  enabled: False
+  method: magnitude
+  include:
+    - "transformer.h.*.attn.c_attn.weight"
+    - "transformer.h.*.attn.c_proj.weight"
+    - "transformer.h.*.mlp.c_fc.weight"
+    - "transformer.h.*.mlp.c_proj.weight"
+  exclude:
+    - "llm_head"
+    - "wte"
+    - "wpe"
+    - "ln_"
+  schedule:
+    type: piecewise_by_layer
+    rules:
+      - {layer_range:[0,3], sparsity: 0.9}
+      - {layer_range:[4,7], sparsity: 0.9}
+      - {layer_range:[8,11], sparsity: 0.9}
+  
+  # eval:
+  #   dataset: mmlu_v1
+  #   max_examples: 50
+
+eval:
+  mode: prompt_test
+  prompts:
+    - "Q: What is the capital of France?\nA:"
+    - "Explain what a segment tree is:"
+    - "Does vitamin C cure the common cold?"

@@ -1,1 +1,98 @@
-...
+# =========================
+# OS GENERATED FILES
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# PYTHON
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Logs
+*.log
+
+# =========================
+# TESTING
+# =========================
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# =========================
+# JUPYTER
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# ENV VARIABLES
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# MACHINE LEARNING / EXPERIMENTS
+# =========================
+# outputs/
+checkpoints/
+runs/
+wandb/
+mlruns/
+tensorboard/
+
+# Model weights
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+
+# =========================
+# FASTAPI / UVICORN
+# =========================
+*.sqlite3
+
+# =========================
+# NODE (if extension/frontend exists)
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+dist/
+build/
+
+# =========================
+# VSCODE
+# =========================
+.vscode/
+
+# =========================
+# IDE
+# =========================
+.idea/
+
+# =========================
+# MISC
+# =========================
+*.swp
+*.swo
