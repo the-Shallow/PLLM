@@ -1,0 +1,13 @@
+{
+  "run_id": "gpt2-base_1773085284",
+  "num_prompts": 53,
+  "num_scored": 53,
+  "accuracy": 0.1321,
+  "hallucination_rate": 0.8679,
+  "overconfident_hallucination_rate": 0.7736,
+  "avg_lns_score": -2.2714,
+  "correct_certain": 7,
+  "correct_uncertain": 0,
+  "incorrect_certain": 41,
+  "incorrect_uncertain": 5
+}

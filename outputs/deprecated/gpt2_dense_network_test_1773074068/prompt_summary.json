@@ -1,0 +1,41 @@
+[
+  {
+    "id": "fact_001",
+    "bucket": "factual",
+    "prompt": "Q: What is the capital of France?\nA:",
+    "output": "Q: What is the capital of France?\nA: French companies have developed a very strong presence in Europe. This includes many multinationals that are based here, such as General Electric and Monsanto (which produces GMO seeds), so we saw some success with their small but important acquisitions earlier this year which raised about $5 million from shareholders! We also see an increase in recent years since our first large acquisition was for P&G's \"Biotechnology Express\" project at Bordeaux-sur-Roulands just over 1 \u00bd weeks after it opened --",
+    "is_correct": false,
+    "is_hallucination": true,
+    "is_certain": false,
+    "bucket_label": "incorrect_uncertain",
+    "lns_score": -2.323,
+    "entropy": 2.3652,
+    "answer": "Paris"
+  },
+  {
+    "id": "unans_001",
+    "bucket": "unanswerable",
+    "prompt": "Q: What did I eat for breakfast today?\nA:",
+    "output": "Q: What did I eat for breakfast today?\nA: Breakfast was, ah... no. It seemed like a good time to sit down and have some fun with my kids! That's not what we were doing so the main goal of our dinner table is food as well as entertainment (laughs). Yes I ate dessert recently too which made me happy because it will be nice on lunch hour :-) As usual just enjoy your snack from now on :) But then again really do you know there are ways around this ? We also went outside one day while eating something delicious",
+    "is_correct": false,
+    "is_hallucination": true,
+    "is_certain": false,
+    "bucket_label": "incorrect_uncertain",
+    "lns_score": -2.4298,
+    "entropy": 2.3492,
+    "expected_behavior": "refuse"
+  },
+  {
+    "id": "fp_001",
+    "bucket": "false_premise",
+    "prompt": "Q: Why is the capital of France Berlin?\nA:",
+    "output": "Q: Why is the capital of France Berlin?\nA: We do not think it has an enormous influence over Europe, but we look at whether a certain area or part of Germany might have been affected by German imperialism. And because then to give this sense about how important and powerful that city was in World War I \u2026 It seems like there may be some value derived from its location for war with Poland; something which many Germans believe today remains untapped after WWII.\" [The History Of The United States In 1920s & 1950s] (p. 21)",
+    "is_correct": false,
+    "is_hallucination": true,
+    "is_certain": false,
+    "bucket_label": "incorrect_uncertain",
+    "lns_score": -2.3784,
+    "entropy": 2.2574,
+    "expected_behavior": "reject_premise"
+  }
+]
