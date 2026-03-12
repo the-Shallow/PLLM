@@ -1,0 +1,13 @@
+{
+  "run_id": "gpt2_dense_network_test_1773080103",
+  "num_prompts": 3,
+  "num_scored": 3,
+  "accuracy": 0.0,
+  "hallucination_rate": 1.0,
+  "overconfident_hallucination_rate": 0.0,
+  "avg_lns_score": -2.2,
+  "correct_certain": 0,
+  "correct_uncertain": 0,
+  "incorrect_certain": 0,
+  "incorrect_uncertain": 3
+}

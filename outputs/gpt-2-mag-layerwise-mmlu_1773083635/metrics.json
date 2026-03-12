@@ -1,0 +1,13 @@
+{
+  "run_id": "gpt-2-mag-layerwise-mmlu_1773083635",
+  "num_prompts": 53,
+  "num_scored": 53,
+  "accuracy": 0.1132,
+  "hallucination_rate": 0.8868,
+  "overconfident_hallucination_rate": 0.8302,
+  "avg_lns_score": -2.2359,
+  "correct_certain": 6,
+  "correct_uncertain": 0,
+  "incorrect_certain": 44,
+  "incorrect_uncertain": 3
+}
