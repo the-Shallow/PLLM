@@ -4,7 +4,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 def load_model(cfg):
     name = cfg.get("name")
-    device = "mps"
+    device = cfg.get("device")
 
     tokenizer = AutoTokenizer.from_pretrained(name)
     if tokenizer.pad_token is None:
@@ -13,4 +13,4 @@ def load_model(cfg):
     model = AutoModelForCausalLM.from_pretrained(name)
     model.to(device)
     model.eval()
-    return model, tokenizer
+    return model, tokenizer, device
