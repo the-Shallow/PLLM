@@ -1,9 +1,11 @@
 from typing import Callable, Dict
 
 from .magnitude import MagnitudePruning
+from .wanda import WandaPruning
 
 PRUNER_REGISTRY: Dict[str, Callable[[], object]] = {
-    "magnitude": MagnitudePruning
+    "magnitude": MagnitudePruning,
+    "wanda" : WandaPruning
 }
 
 

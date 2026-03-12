@@ -49,11 +49,12 @@
 # =======
 from __future__ import annotations
 import fnmatch
-import re
 from dataclasses import dataclass
 from typing import List, Optional, Any, Dict, Tuple
 import torch
 import torch.nn as nn
+
+from ..lib.util import *
 
 @dataclass
 class MaskInfo:
@@ -64,13 +65,6 @@ class MaskInfo:
 
 def matches_any(name:str, patterns: List[str]):
     return any(fnmatch.fnmatch(name, p) for p in patterns)
-
-def extract_layer_index(param_name:str):
-    m = re.search(r"transformer\.h\.(\d+)\.", param_name)
-    if not m:
-        return None
-
-    return int(m.group(1))
 
 def sparsity_by_layer(layer_idx: int, schedule: Dict[str, Any]):
     stype = schedule.get("type", "uniform")
@@ -109,7 +103,7 @@ def make_mask_by_sparsity(weight: torch.Tensor, sparsity: float):
     return mask.to(dtype=torch.bool)
 
 class MagnitudePruning:
-    def compute_masks(self, model: nn.Module, prune_cfg: Dict[str, Any]):
+    def compute_masks(self, model: nn.Module, prune_cfg: Dict[str, Any], tokenizer, device):
         include = prune_cfg.get("include", ["*.weight"])
         exclude = prune_cfg.get("exclude", [])
         schedule = prune_cfg.get("schedule", {"type": "uniform", "sparsity": prune_cfg.get("sparsity", 0.5)})

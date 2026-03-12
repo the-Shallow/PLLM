@@ -18,7 +18,8 @@ def run_experiment(cfg):
     out_dir = os.path.join("outputs", run_id)
     os.makedirs(out_dir, exist_ok=True)
 
-    model, tokenizer = load_model(cfg["model"])
+
+    model, tokenizer, device = load_model(cfg["model"])
 
     # ------------------------------------------------------------------
     # Pruning (optional)
@@ -27,7 +28,7 @@ def run_experiment(cfg):
     prune_metrics = None
     if pr_cfg.get("enabled", False):
         pruner = get_pruner(pr_cfg.get("method", "magnitude"))
-        masks, infos = pruner.compute_masks(model, pr_cfg)
+        masks, infos = pruner.compute_masks(model, pr_cfg, tokenizer, device)
         pruner.apply_masks(model, masks)
         summary = pruner.summarize(infos)
 
