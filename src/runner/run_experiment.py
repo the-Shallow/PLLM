@@ -10,6 +10,7 @@ from src.eval.datasets import load_prompts
 from src.eval.generate import generate_with_scores, generate_n_samples
 from src.eval.metrics import score_output, aggregate_metrics
 from src.runner.report import print_rich_table, save_charts
+from src.runner.logging import logger
 
 
 def run_experiment(cfg):
@@ -18,8 +19,9 @@ def run_experiment(cfg):
     out_dir = os.path.join("outputs", run_id)
     os.makedirs(out_dir, exist_ok=True)
 
-
+    logger.info(f"Loading model and tokenizer")
     model, tokenizer, device = load_model(cfg["model"])
+
 
     # ------------------------------------------------------------------
     # Pruning (optional)
@@ -27,6 +29,7 @@ def run_experiment(cfg):
     pr_cfg = cfg.get("prune", {})
     prune_metrics = None
     if pr_cfg.get("enabled", False):
+        logger.info(f"Pruning enabled. Method: {pr_cfg.get('method', 'magnitude')}")
         pruner = get_pruner(pr_cfg.get("method", "magnitude"))
         masks, infos = pruner.compute_masks(model, pr_cfg, tokenizer, device)
         pruner.apply_masks(model, masks)
@@ -48,6 +51,7 @@ def run_experiment(cfg):
     eval_metrics: Dict[str, Any] = {}
 
     if eval_cfg.get("mode") == "prompt_test":
+        logger.info(f"Evaluation mode: Prompt test")
         num_samples = eval_cfg.get("num_samples", 1)
         lns_threshold = eval_cfg.get("lns_threshold", -2.0)
         # entropy_threshold = eval_cfg.get("entropy_threshold", 1.5)  # entropy disabled, using lns_threshold

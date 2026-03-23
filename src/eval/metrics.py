@@ -206,3 +206,150 @@ def aggregate_metrics(scored_outputs: List[Dict[str, Any]]) -> Dict[str, Any]:
         # "avg_entropy": round(sum(ent_values) / len(ent_values), 4) if ent_values else None,  # entropy disabled
         **bucket_counts,
     }
+
+
+def extract_binary_labels_and_scores(outputs):
+    y_true = []
+    y_score = []
+
+    for entry in outputs:
+        is_correct = entry.get("is_correct")
+        lns_score = entry.get("lns_score")
+
+        if is_correct is None or lns_score is None:
+            continue
+        
+        y_true.append(0 if is_correct else 1)
+        y_score.append(-float(lns_score))
+
+    return y_true, y_score
+
+
+def binary_clf_curve(y_true, y_score):
+    pairs = sorted(zip(y_score,y_true), key=lambda x : x[0], reverse=True)
+
+    fps, tps, thresholds = [], [], []
+
+    tp,fp,prev_score = 0.0,0.0,None
+
+    for score, label in pairs:
+        if prev_score is not None and score != prev_score:
+            fps.append(fp)
+            tps.append(tp)
+            thresholds.append(prev_score)
+        
+        if label == 1:
+            tp += 1.0
+        else:
+            fp += 1.0
+        
+        prev_score = score
+    
+    if prev_score is not None:
+        fps.append(fp)
+        tps.append(tp)
+        thresholds.append(prev_score)
+
+    return fps, tps, thresholds
+
+
+def compute_auroc(y_true, y_score):
+    if not y_true or len(set(y_true)) < 2:
+        return None
+    
+    fps,tps,_ = binary_clf_curve(y_true,y_score)
+
+
+    pos = sum(y_true)
+    neg = len(y_true) - pos
+
+    if pos == 0 or neg == 0:
+        return None
+    
+    fpr = [0.0] + [fp/neg for fp in fps]
+    tpr = [0.0] + [tp/pos for tp in tps]
+
+    auc = 0.0
+    for i in range(1, len(fpr)):
+        auc += (fpr[i] - fpr[i-1]) * (tpr[i] + tpr[i-1]) / 2.0
+    return auc
+
+def compute_auprc(y_true,y_score):
+    if not y_true or len(set(y_true)) < 2:
+        return None
+
+    pairs = sorted(zip(y_score,y_true), key=lambda x: x[0], reverse=True)
+
+    total_pos = sum(y_true)
+    if total_pos == 0:
+        return None
+    
+    tp, fp = 0.0, 0.0
+
+    precisions = [1.0]
+    recalls = [0.0]
+
+    for _, label in pairs:
+        if label == 1:
+            tp += 1.0
+        else:
+            fp += 1.0
+        
+        precision = tp / (tp + fp)
+        recall = tp / total_pos
+
+        precisions.append(precision)
+        recalls.append(recall)
+    
+    auc = 0.0
+    for i in range(1, len(recalls)):
+        auc += (recalls[i] - recalls[i-1]) * (precision[i] + precision[i-1]) / 2.0
+    
+    return auc
+
+
+def precision_fraction(sorted_correct, keep_fraction):
+    n = len(sorted_correct)
+    if n == 0:
+        return 0.0
+    
+    k = max(1, int(round(n * keep_fraction)))
+    kept = sorted_correct[:k]
+    return sum(kept) / len(kept)
+
+def area_under_precision_rejection(sorted_correct, num_points = 101):
+    rejection_rates, precisions = [], []
+
+    for i in range(num_points):
+        reject_rate = i / (num_points - 1)
+        keep_fraction = 1.0 - reject_rate
+        precision = precision_fraction(sorted_correct, keep_fraction)
+
+        rejection_rates.append(reject_rate)
+        precisions.append(precision)
+
+    auc = 0.0
+    for i in range(1,len(rejection_rates)):
+        auc += (
+            (rejection_rates[i] - rejection_rates[i-1]) *
+            (precisions[i] + precisions[i-1]) / 2.0
+        )
+    return auc
+
+def compute_prr(y_true, y_score):
+    correctness = [1 - y for y in y_true]
+    pairs_unc = sorted(zip(y_score, correctness), key=lambda x : x[0])
+    sorted_correct_unc = [c for _,c in pairs_unc]
+
+    sorted_correct_oracle = sorted(correctness, reverse=True)
+    base_accuracy = sum(correctness) / len(correctness)
+    auc_rand = base_accuracy
+
+    auc_unc = area_under_precision_rejection(sorted_correct_unc)
+    auc_oracle = area_under_precision_rejection(sorted_correct_oracle)
+
+    denom = auc_oracle - auc_rand
+    if denom <= 0:
+        return None
+    
+    return (auc_unc - auc_rand) / denom
