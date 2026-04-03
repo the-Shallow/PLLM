@@ -12,12 +12,19 @@ from src.eval.metrics import score_output, aggregate_metrics
 from src.runner.report import print_rich_table, save_charts
 from src.runner.logging import logger
 
+def get_path(profile_cfg, key, default):
+    return profile_cfg.get("paths", {}).get(key, default)
 
-def run_experiment(cfg):
+def run_experiment(cfg, profile_cfg):
     run_id = cfg["experiment"]["name"] + "_" + str(int(time.time()))
 
-    out_dir = os.path.join("outputs", run_id)
+    # out_dir = os.path.join("outputs", run_id)
+    base_output_dir = get_path(profile_cfg,"output_dir","outputs")
+    out_dir = os.path.join(base_output_dir, run_id)
     os.makedirs(out_dir, exist_ok=True)
+
+    logger.info(f"Run ID: {run_id}")
+    logger.info(f"Output directory: {out_dir}")
 
     logger.info(f"Loading model and tokenizer")
     model, tokenizer, device = load_model(cfg["model"])

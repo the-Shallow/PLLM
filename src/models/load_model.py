@@ -1,16 +1,62 @@
 from typing import Any, Dict, Tuple
-import torch
+import torch, os
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+def get_path(profile_cfg, key):
+    return profile_cfg.get("paths", {}).get(key)
 
 def load_model(cfg):
     name = cfg.get("name")
-    device = cfg.get("device")
+    device = cfg.get("device", "cuda")
 
-    tokenizer = AutoTokenizer.from_pretrained(name)
+    hf_home = get_path(cfg, "hf_home")
+    if hf_home:
+        os.environ["HF_HOME"] = hf_home
+        os.environ["TRANSFORMERS_CACHE"] = os.path.join(hf_home, "transformers")
+        os.environ["HUGGINGFACE_HUB_CACHE"] = os.path.join(hf_home, "hub")
+
+    
+    tokenizer = AutoTokenizer.from_pretrained(name, cache_dir=os.environ.get("TRANSFORMERS_CACHE", None))
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
+
+    dtype_map = {
+        "fp32": torch.float32,
+        "fp16": torch.float16,
+        "bf16": torch.bfloat16
+    }
+
+    dtype_str = cfg.get("dtype", "fp16")
+    torch_dtype = dtype_map.get(dtype_str, torch.float16)
+
+    load_in_8bit = cfg.get("load_in_8bit", False)
+    load_in_4bit = cfg.get("load_in_4bit", False)
     
-    model = AutoModelForCausalLM.from_pretrained(name)
-    model.to(device)
+    device_map = cfg.get("device_map", None)
+
+    logger_info = {
+        "model" : name,
+        "dtype": dtype_str,
+        "device": device,
+        "device_map": device_map,
+        "8bit": load_in_8bit,
+        "4bit": load_in_4bit,
+        "hf_cache": os.environ.get("HF_HOME", "default")
+    }
+
+    print(f"Loading model with config: {logger_info}")
+
+    model = AutoModelForCausalLM.from_pretrained(
+        name,
+        torch_dtype=torch_dtype,
+        device_map=device_map,
+        load_in_8bit=load_in_8bit,
+        load_in_4bit=load_in_4bit,
+        cache_dir=os.environ.get("TRANSFORMERS_CACHE", None)
+    )
+
+    if device_map is None:
+        model.to(device)
+
     model.eval()
     return model, tokenizer, device

@@ -1,0 +1,6 @@
+paths:
+  output_dirs: outputs
+  cache_dirs: .cache
+  hf_home: .cache/hf
+  log_dir: outputs/logs
+  offload_dir: .cache/offload
