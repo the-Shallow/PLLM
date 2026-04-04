@@ -1,6 +1,7 @@
 experiment:
   name: llama-3.2-3b-instruct-mag-layerwise
 
+profile: hazel
 model:
   name: meta-llama/Llama-3.2-3B-Instruct
   device: cuda

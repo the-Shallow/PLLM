@@ -10,10 +10,13 @@ def load_model(cfg, profile_cfg):
     device = cfg.get("device", "cuda")
 
     hf_home = get_path(profile_cfg, "hf_home")
+    print(f"HF_HOME for this run: {hf_home if hf_home else 'default'}")
     if hf_home:
         os.environ["HF_HOME"] = hf_home
         os.environ["TRANSFORMERS_CACHE"] = os.path.join(hf_home, "transformers")
         os.environ["HUGGINGFACE_HUB_CACHE"] = os.path.join(hf_home, "hub")
+
+    print(os.environ.get("HF_HOME", "HF_HOME not set"), os.environ.get("TRANSFORMERS_CACHE", "TRANSFORMERS_CACHE not set"), os.environ.get("HUGGINGFACE_HUB_CACHE", "HUGGINGFACE_HUB_CACHE not set"))
 
     
     tokenizer = AutoTokenizer.from_pretrained(name, cache_dir=os.environ.get("TRANSFORMERS_CACHE", None))
