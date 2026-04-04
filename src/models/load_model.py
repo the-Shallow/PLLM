@@ -5,11 +5,11 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 def get_path(profile_cfg, key):
     return profile_cfg.get("paths", {}).get(key)
 
-def load_model(cfg):
+def load_model(cfg, profile_cfg):
     name = cfg.get("name")
     device = cfg.get("device", "cuda")
 
-    hf_home = get_path(cfg, "hf_home")
+    hf_home = get_path(profile_cfg, "hf_home")
     if hf_home:
         os.environ["HF_HOME"] = hf_home
         os.environ["TRANSFORMERS_CACHE"] = os.path.join(hf_home, "transformers")

@@ -27,7 +27,7 @@ def run_experiment(cfg, profile_cfg):
     logger.info(f"Output directory: {out_dir}")
 
     logger.info(f"Loading model and tokenizer")
-    model, tokenizer, device = load_model(cfg["model"])
+    model, tokenizer, device = load_model(cfg["model"], profile_cfg)
 
 
     # ------------------------------------------------------------------
