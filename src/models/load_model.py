@@ -7,26 +7,29 @@ def get_path(profile_cfg, key):
     return os.path.expandvars(value) if value else value
 
 
-def resolve_local_model_path(model_name: str, hf_home: str) -> str:
-    repo_dir = os.path.join(
-        hf_home,
-        "hub",
-        f"models--{model_name.replace('/', '--')}"
+def resolve_local_model_path(model_name: str) -> str:
+    candidate_roots = [
+        os.environ.get("HUGGINGFACE_HUB_CACHE"),
+        os.environ.get("TRANSFORMERS_CACHE"),
+    ]
+
+    repo_name = f"models--{model_name.replace('/', '--')}"
+
+    for root in candidate_roots:
+        if not root:
+            continue
+
+        repo_dir = os.path.join(root, repo_name)
+        snapshots_dir = os.path.join(repo_dir, "snapshots")
+
+        if os.path.isdir(snapshots_dir):
+            snapshots = sorted(os.listdir(snapshots_dir))
+            if snapshots:
+                return os.path.join(snapshots_dir, snapshots[-1])
+
+    raise FileNotFoundError(
+        f"No cached snapshots found for model '{model_name}' in: {candidate_roots}"
     )
-    snapshots_dir = os.path.join(repo_dir, "snapshots")
-
-    if not os.path.isdir(snapshots_dir):
-        raise FileNotFoundError(
-            f"No cached snapshots directory found for model '{model_name}' at: {snapshots_dir}"
-        )
-
-    snapshots = sorted(os.listdir(snapshots_dir))
-    if not snapshots:
-        raise FileNotFoundError(
-            f"No cached snapshots found for model '{model_name}' in: {snapshots_dir}"
-        )
-
-    return os.path.join(snapshots_dir, snapshots[-1])
 
 def load_model(cfg, profile_cfg):
     name = cfg.get("name")
@@ -43,7 +46,7 @@ def load_model(cfg, profile_cfg):
         os.environ["HF_HUB_OFFLINE"] = "1"
 
     print(os.environ.get("HF_HOME", "HF_HOME not set"), os.environ.get("TRANSFORMERS_CACHE", "TRANSFORMERS_CACHE not set"), os.environ.get("HUGGINGFACE_HUB_CACHE", "HUGGINGFACE_HUB_CACHE not set"))
-    local_model_path = resolve_local_model_path(name, os.environ["HF_HOME"])
+    local_model_path = resolve_local_model_path(name)
     print(f"Using local model path: {local_model_path}")
     
     # tokenizer = AutoTokenizer.from_pretrained(name, cache_dir=os.environ.get("TRANSFORMERS_CACHE", None))
@@ -83,7 +86,8 @@ def load_model(cfg, profile_cfg):
         device_map=device_map,
         load_in_8bit=load_in_8bit,
         load_in_4bit=load_in_4bit,
-        cache_dir=os.environ.get("TRANSFORMERS_CACHE", None)
+        # cache_dir=os.environ.get("TRANSFORMERS_CACHE", None),
+        local_files_only=True
     )
 
     if device_map is None:
