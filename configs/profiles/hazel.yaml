@@ -1,0 +1,6 @@
+paths:
+  output_dirs: /share/${GROUP}/${USER}/pllm_outputs
+  cache_dirs: /share/${GROUP}/${USER}/pllm_cache
+  hf_home: /share/${GROUP}/${USER}/hf
+  log_dir: /share/${GROUP}/${USER}/pllm_outputs/logs
+  offload_dir: /share/${GROUP}/${USER}/pllm_tmp/offload

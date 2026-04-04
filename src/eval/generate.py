@@ -77,7 +77,7 @@ def generate_with_scores(
     # out.sequences: (1, prompt_len + gen_len)
     generated_ids = out.sequences[0, prompt_len:]
     n_steps = min(len(out.scores), len(generated_ids))
-
+    # print(f"Out scores : {out.scores} and n_steps : {n_steps}")
     token_logprobs: List[float] = []
 
     for step in range(n_steps):

@@ -12,11 +12,16 @@ class MaskInfo:
     zeros: int
 
 def extract_layer_index(param_name:str):
-    m = re.search(r"transformer\.h\.(\d+)\.", param_name)
-    if not m:
-        return None
+    patterns = [
+        r"transformer\.h\.(\d+)\.",
+        r"model\.layers\.(\d+)\.",
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, param_name)
+        if m:
+            return int(m.group(1))
 
-    return int(m.group(1))
+    return None
 
 ## Recursively find layers that match the layer name specified and return a dictionary filled with the modules that match
 def find_layers(module, layers=(nn.Linear, Conv1D), name=''):

@@ -1,0 +1,13 @@
+{
+  "run_id": "llama-3.2-3b-instruct-mag-layerwise_1773865888",
+  "num_prompts": 53,
+  "num_scored": 53,
+  "accuracy": 0.5094,
+  "hallucination_rate": 0.4906,
+  "overconfident_hallucination_rate": 0.4906,
+  "avg_lns_score": -0.4976,
+  "correct_certain": 27,
+  "correct_uncertain": 0,
+  "incorrect_certain": 26,
+  "incorrect_uncertain": 0
+}

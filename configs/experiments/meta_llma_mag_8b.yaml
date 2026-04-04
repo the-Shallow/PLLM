@@ -1,31 +1,44 @@
 experiment:
-  name: gpt-2-mag-layerwise-mmlu
+  name: llama-3.1-8b-instruct-mag-layerwise
 
+profile: hazel
 
 model:
-  name: gpt2
+  name: meta-llama/Llama-3.1-8B-Instruct
   device: cuda
-  dtype: float16
+  dtype: bfloat16
+  trust_remote_code: true
+  load_in_8bit: false
+  attn_implementation: flash_attention_2
 
 prune:
-  enabled: true
+  enabled: false
   method: magnitude
+
   include:
-    - "transformer.h.*.attn.c_attn.weight"
-    - "transformer.h.*.attn.c_proj.weight"
-    - "transformer.h.*.mlp.c_fc.weight"
-    - "transformer.h.*.mlp.c_proj.weight"
+    - "model.layers.*.self_attn.q_proj.weight"
+    - "model.layers.*.self_attn.k_proj.weight"
+    - "model.layers.*.self_attn.v_proj.weight"
+    - "model.layers.*.self_attn.o_proj.weight"
+    - "model.layers.*.mlp.gate_proj.weight"
+    - "model.layers.*.mlp.up_proj.weight"
+    - "model.layers.*.mlp.down_proj.weight"
+
   exclude:
-    - "llm_head"
-    - "wte"
-    - "wpe"
-    - "ln_"
+    - "lm_head"
+    - "model.norm"
+    - "input_layernorm"
+    - "model.embed_tokens"
+    - "post_attention_layernorm"
+
   schedule:
     type: piecewise_by_layer
     rules:
-      - {layer_range: [0, 3],  sparsity: 0.9}
-      - {layer_range: [4, 7],  sparsity: 0.9}
-      - {layer_range: [8, 11], sparsity: 0.9}
+      # Llama-3.1-8B has 32 layers
+      - { layer_range: [0,7], sparsity: 0.4 }
+      - { layer_range: [8,15], sparsity: 0.5 }
+      - { layer_range: [16,23], sparsity: 0.6 }
+      - { layer_range: [24,31], sparsity: 0.7 }
 
 eval:
   mode: prompt_test
