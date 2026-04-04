@@ -80,16 +80,24 @@ def load_model(cfg, profile_cfg):
 
     print(f"Loading model with config: {logger_info}")
 
+    model_kwargs = {
+    "torch_dtype": torch_dtype,
+    "local_files_only": True,
+}
+
+    if device_map is not None:
+        model_kwargs["device_map"] = device_map
+
+    if load_in_8bit:
+        model_kwargs["load_in_8bit"] = True
+
+    if load_in_4bit:
+        model_kwargs["load_in_4bit"] = True
+
     model = AutoModelForCausalLM.from_pretrained(
         local_model_path,
-        torch_dtype=torch_dtype,
-        device_map=device_map,
-        load_in_8bit=load_in_8bit,
-        load_in_4bit=load_in_4bit,
-        # cache_dir=os.environ.get("TRANSFORMERS_CACHE", None),
-        local_files_only=True
+        **model_kwargs
     )
-
     if device_map is None:
         model.to(device)
 
