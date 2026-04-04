@@ -72,11 +72,11 @@ class WrappedGPT:
     def __init__(self, layer, layer_id=0, layer_name="none"):
         self.layer = layer
         self.dev = self.layer.weight.device
-        self.in_features = layer.weight.shape[0]  # input dimension
-        self.out_features = layer.weight.shape[1] # output dimension
+        self.in_features = layer.weight.shape[1]  # input dimension
+        self.out_features = layer.weight.shape[0] # output dimension
 
         # scaler_row accumulates input norms per row (matches input features)
-        self.scaler_row = torch.zeros(self.in_features, device=self.dev)
+        self.scaler_row = torch.zeros(self.layer.in_features, device=self.layer.weight.device)
         self.nsamples = 0
 
         self.layer_id = layer_id

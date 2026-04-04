@@ -1,0 +1,15 @@
+{
+  "run_id": "llama-3.2-3b-mag-layerwise-prompttest_1775159466",
+  "prune_summary": 0.0,
+  "num_params_masked": 196,
+  "num_prompts": 3,
+  "num_scored": 0,
+  "accuracy": null,
+  "hallucination_rate": null,
+  "overconfident_hallucination_rate": null,
+  "avg_lns_score": -1.0638,
+  "correct_certain": 0,
+  "correct_uncertain": 0,
+  "incorrect_certain": 0,
+  "incorrect_uncertain": 0
+}

@@ -1,0 +1,15 @@
+{
+  "run_id": "orca-mini-3b-mag-layerwise-prompttest_1774644166",
+  "prune_summary": 0.0,
+  "num_params_masked": 182,
+  "num_prompts": 53,
+  "num_scored": 53,
+  "accuracy": 0.3774,
+  "hallucination_rate": 0.6226,
+  "overconfident_hallucination_rate": 0.6226,
+  "avg_lns_score": -0.5337,
+  "correct_certain": 20,
+  "correct_uncertain": 0,
+  "incorrect_certain": 33,
+  "incorrect_uncertain": 0
+}

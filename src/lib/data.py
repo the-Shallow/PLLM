@@ -58,6 +58,10 @@ def get_wikitext2(nsamples, seed, seqlen, tokenizer):
         tar = inp.clone()
         tar[:, :-1] = -100
         trainloader.append((inp, tar))
+
+    del trainenc
+    import gc; gc.collect()
+    
     return trainloader, testenc
 
 def get_loaders(name, nsamples=128, seed=0, seqlen=1024, tokenizer=None):
