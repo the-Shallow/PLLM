@@ -3,7 +3,8 @@ import torch, os
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 def get_path(profile_cfg, key):
-    return profile_cfg.get("paths", {}).get(key)
+    value = profile_cfg.get("paths", {}).get(key)
+    return os.path.expandvars(value) if value else value
 
 def load_model(cfg, profile_cfg):
     name = cfg.get("name")
