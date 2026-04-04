@@ -6,6 +6,28 @@ def get_path(profile_cfg, key):
     value = profile_cfg.get("paths", {}).get(key)
     return os.path.expandvars(value) if value else value
 
+
+def resolve_local_model_path(model_name: str, hf_home: str) -> str:
+    repo_dir = os.path.join(
+        hf_home,
+        "hub",
+        f"models--{model_name.replace('/', '--')}"
+    )
+    snapshots_dir = os.path.join(repo_dir, "snapshots")
+
+    if not os.path.isdir(snapshots_dir):
+        raise FileNotFoundError(
+            f"No cached snapshots directory found for model '{model_name}' at: {snapshots_dir}"
+        )
+
+    snapshots = sorted(os.listdir(snapshots_dir))
+    if not snapshots:
+        raise FileNotFoundError(
+            f"No cached snapshots found for model '{model_name}' in: {snapshots_dir}"
+        )
+
+    return os.path.join(snapshots_dir, snapshots[-1])
+
 def load_model(cfg, profile_cfg):
     name = cfg.get("name")
     device = cfg.get("device", "cuda")
@@ -16,11 +38,16 @@ def load_model(cfg, profile_cfg):
         os.environ["HF_HOME"] = hf_home
         os.environ["TRANSFORMERS_CACHE"] = os.path.join(hf_home, "transformers")
         os.environ["HUGGINGFACE_HUB_CACHE"] = os.path.join(hf_home, "hub")
+        os.environ["TRANSFORMERS_OFFLINE"] = "1"
+        os.environ["HF_DATASETS_OFFLINE"] = "1"
+        os.environ["HF_HUB_OFFLINE"] = "1"
 
     print(os.environ.get("HF_HOME", "HF_HOME not set"), os.environ.get("TRANSFORMERS_CACHE", "TRANSFORMERS_CACHE not set"), os.environ.get("HUGGINGFACE_HUB_CACHE", "HUGGINGFACE_HUB_CACHE not set"))
-
+    local_model_path = resolve_local_model_path(name, os.environ["HF_HOME"])
+    print(f"Using local model path: {local_model_path}")
     
-    tokenizer = AutoTokenizer.from_pretrained(name, cache_dir=os.environ.get("TRANSFORMERS_CACHE", None))
+    # tokenizer = AutoTokenizer.from_pretrained(name, cache_dir=os.environ.get("TRANSFORMERS_CACHE", None))
+    tokenizer = AutoTokenizer.from_pretrained(local_model_path, local_files_only=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
@@ -51,7 +78,7 @@ def load_model(cfg, profile_cfg):
     print(f"Loading model with config: {logger_info}")
 
     model = AutoModelForCausalLM.from_pretrained(
-        name,
+        local_model_path,
         torch_dtype=torch_dtype,
         device_map=device_map,
         load_in_8bit=load_in_8bit,
