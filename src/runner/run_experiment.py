@@ -42,7 +42,7 @@ def run_experiment(cfg, profile_cfg):
         pruner.apply_masks(model, masks)
         summary = pruner.summarize(infos)
 
-        torch.save({k: v.cpu() for k, v in masks.items()}, os.path.join(out_dir, "masks.pt"))
+        # torch.save({k: v.cpu() for k, v in masks.items()}, os.path.join(out_dir, "masks.pt"))
         with open(os.path.join(out_dir, "prune_summary.json"), "w") as f:
             json.dump(summary, f, indent=2)
 
