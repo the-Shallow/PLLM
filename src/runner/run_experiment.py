@@ -15,6 +15,14 @@ from src.runner.logging import logger
 def get_path(profile_cfg, key, default):
     return profile_cfg.get("paths", {}).get(key, default)
 
+def compute_percentile_threshold(outputs, percentile=25):
+    scores = sorted(float(o["lns_score"]) for o in outputs if o.get("lns_score") is not None)
+    if not scores:
+        return None
+
+    idx = int((percentile / 100.0) * (len(scores) - 1))
+    return scores[idx]
+
 def run_experiment(cfg, profile_cfg):
     run_id = cfg["experiment"]["name"] + "_" + str(int(time.time()))
 
@@ -60,7 +68,7 @@ def run_experiment(cfg, profile_cfg):
     if eval_cfg.get("mode") == "prompt_test":
         logger.info(f"Evaluation mode: Prompt test")
         num_samples = eval_cfg.get("num_samples", 1)
-        lns_threshold = eval_cfg.get("lns_threshold", -2.0)
+        # lns_threshold = eval_cfg.get("lns_threshold", -2.0)
         # entropy_threshold = eval_cfg.get("entropy_threshold", 1.5)  # entropy disabled, using lns_threshold
 
         records = load_prompts(eval_cfg)
@@ -109,6 +117,30 @@ def run_experiment(cfg, profile_cfg):
                 entry["samples"] = sample_list
 
             outputs.append(entry)
+
+        lns_threshold = compute_percentile_threshold(outputs=outputs, percentile=25)
+
+        for entry in outputs:
+            lns_score = entry.get("lns_score")
+            is_correct = entry.get("is_correct")
+
+            if lns_score is None or is_correct is None:
+                logger.warning(f"Entry {entry['id']} is missing lns_score or is_correct. Skipping.")
+                continue
+
+            is_certain = lns_score > lns_threshold
+            entry["is_certain"] = is_certain
+
+            if is_correct and is_certain:
+                entry["bucket_label"] = "correct_certain"
+            elif is_correct and not is_certain:
+                entry["bucket_label"] = "correct_uncertain"
+            elif not is_correct and is_certain:
+                entry["bucket_label"] = "incorrect_certain"
+            else:
+                entry["bucket_label"] = "incorrect_uncertain"
+            
+            logger.debug(f"Entry {entry['id']} - lns_score: {lns_score}, is_correct: {is_correct}, is_certain: {is_certain}, bucket_label: {entry['bucket_label']}")
 
         with open(os.path.join(out_dir, "prompt_summary.json"), "w") as f:
             json.dump(outputs, f, indent=2)

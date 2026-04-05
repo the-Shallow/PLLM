@@ -4,3 +4,6 @@ paths:
   hf_home: /share/${GROUP}/${USER}/hf
   log_dir: /share/${GROUP}/${USER}/pllm_outputs/logs
   offload_dir: /share/${GROUP}/${USER}/pllm_tmp/offload
+
+runtime:
+  offline: true

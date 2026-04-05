@@ -34,6 +34,7 @@ def resolve_local_model_path(model_name: str) -> str:
 def load_model(cfg, profile_cfg):
     name = cfg.get("name")
     device = cfg.get("device", "cuda")
+    runtime = profile_cfg.get("runtime").get("offline")
 
     hf_home = get_path(profile_cfg, "hf_home")
     print(f"HF_HOME for this run: {hf_home if hf_home else 'default'}")
@@ -46,11 +47,18 @@ def load_model(cfg, profile_cfg):
         os.environ["HF_HUB_OFFLINE"] = "1"
 
     print(os.environ.get("HF_HOME", "HF_HOME not set"), os.environ.get("TRANSFORMERS_CACHE", "TRANSFORMERS_CACHE not set"), os.environ.get("HUGGINGFACE_HUB_CACHE", "HUGGINGFACE_HUB_CACHE not set"))
-    local_model_path = resolve_local_model_path(name)
-    print(f"Using local model path: {local_model_path}")
-    
+    local_files_only = False
+    if runtime:
+        print("Running in offline mode. Will attempt to load model from local cache.")
+        local_model_path = resolve_local_model_path(name)
+        print(f"Using local model path: {local_model_path}")
+        local_files_only = True
+    else:
+        local_model_path = name
+        print(f"Using model name for online loading: {local_model_path}")
+        
     # tokenizer = AutoTokenizer.from_pretrained(name, cache_dir=os.environ.get("TRANSFORMERS_CACHE", None))
-    tokenizer = AutoTokenizer.from_pretrained(local_model_path, local_files_only=True)
+    tokenizer = AutoTokenizer.from_pretrained(local_model_path, local_files_only=local_files_only)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
@@ -82,7 +90,7 @@ def load_model(cfg, profile_cfg):
 
     model_kwargs = {
     "torch_dtype": torch_dtype,
-    "local_files_only": True,
+    "local_files_only": local_files_only,
 }
 
     if device_map is not None:
