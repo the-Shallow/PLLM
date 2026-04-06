@@ -112,7 +112,7 @@ def score_output(
     #   Swapped to LNS because LNS is more directly interpretable:
     #   it measures how probable the chosen tokens actually were.
     # ---------------------------------------------------------------------------
-    lns_threshold: float = -2.0,
+    # lns_threshold: float = -2.0,
 ) -> Dict[str, Any]:
     """
     Score a single generated output against its prompt bucket.

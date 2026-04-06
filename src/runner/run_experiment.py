@@ -100,7 +100,7 @@ def run_experiment(cfg, profile_cfg):
                 "answer": record.answer,
                 "expected_behavior": record.expected_behavior,
             }
-            scores = score_output(record_dict, output_text, avg_logprob, lns_threshold)
+            scores = score_output(record_dict, output_text, avg_logprob)
 
             entry: Dict[str, Any] = {
                 "id": record.id,
