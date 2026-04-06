@@ -112,7 +112,7 @@ def score_output(
     #   Swapped to LNS because LNS is more directly interpretable:
     #   it measures how probable the chosen tokens actually were.
     # ---------------------------------------------------------------------------
-    lns_threshold: float = -2.0,
+    # lns_threshold: float = -2.0,
 ) -> Dict[str, Any]:
     """
     Score a single generated output against its prompt bucket.
@@ -138,25 +138,25 @@ def score_output(
 
     # is_certain: avg_logprob closer to 0 = model was confident in its token choices.
     # lns_threshold=-2.0 means log-prob per token above -2.0 is considered "certain".
-    is_certain = avg_logprob > lns_threshold
+    # is_certain = avg_logprob > lns_threshold
 
-    if is_correct is None:
-        bucket_label = "unscored"
-    elif is_correct and is_certain:
-        bucket_label = "correct_certain"
-    elif is_correct and not is_certain:
-        bucket_label = "correct_uncertain"
-    elif not is_correct and is_certain:
-        # Most dangerous failure mode: model was wrong but confident — overconfident hallucination
-        bucket_label = "incorrect_certain"
-    else:
-        bucket_label = "incorrect_uncertain"
+    # if is_correct is None:
+    #     bucket_label = "unscored"
+    # elif is_correct and is_certain:
+    #     bucket_label = "correct_certain"
+    # elif is_correct and not is_certain:
+    #     bucket_label = "correct_uncertain"
+    # elif not is_correct and is_certain:
+    #     # Most dangerous failure mode: model was wrong but confident — overconfident hallucination
+    #     bucket_label = "incorrect_certain"
+    # else:
+    #     bucket_label = "incorrect_uncertain"
 
     return {
         "is_correct": is_correct,
         "is_hallucination": is_hallucination,
-        "is_certain": is_certain,
-        "bucket_label": bucket_label,
+        # "is_certain": is_certain,
+        # "bucket_label": bucket_label,
         "lns_score": round(avg_logprob, 4),
         # "entropy": round(avg_entropy, 4),  # entropy disabled
     }
@@ -303,7 +303,7 @@ def compute_auprc(y_true,y_score):
     
     auc = 0.0
     for i in range(1, len(recalls)):
-        auc += (recalls[i] - recalls[i-1]) * (precision[i] + precision[i-1]) / 2.0
+        auc += (recalls[i] - recalls[i-1]) * (precisions[i] + precisions[i-1]) / 2.0
     
     return auc
 
