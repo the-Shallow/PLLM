@@ -44,16 +44,27 @@ def _contains_any(text: str, phrases: List[str]) -> bool:
 
 def _extract_response(output: str) -> str:
     """
-    Strip the echoed prompt from the output and return only the generated response.
+    Return only the first answer from the generated output.
 
-    The model output includes the full prompt (e.g. "Q: What is...\\nA:") followed
-    by the generated continuation. We split on the last "A:" to isolate the response
-    part — otherwise short answers like "6" or "12" would match numbers that appear
-    anywhere in the question or context, not just in the actual answer.
+    Two things can pollute the output:
+    1. Echoed prompt — the model repeats "Q: ... A:" before answering.
+       Split on the last "A:" to skip past it.
+       NOTE: with generate.py decoding only generated tokens (prompt_len slice),
+       the prompt is already stripped, so this is a safety fallback.
+    2. Overgeneration — larger models (e.g. Llama 3B) continue generating extra
+       Q&A pairs after the actual answer, e.g.:
+           " H2O\nQ: How do you spell water?\nA: W-A-T-E-R\n..."
+       Truncate at the first "\\nQ:" to keep only the real first answer.
     """
-    # Split on the last occurrence of "A:" (the answer marker in our prompt format)
+    # Step 1: strip echoed prompt if present (safety fallback)
     parts = output.rsplit("A:", 1)
-    return parts[-1] if len(parts) > 1 else output
+    response = parts[-1] if len(parts) > 1 else output
+
+    # Step 2: cut off overgeneration — anything after the first new question is noise.
+    # Use \n+ to handle models that insert one or two blank lines before the next Q.
+    response = re.split(r'\n+Q:', response)[0]
+
+    return response
 
 
 def score_factual(output: str, answer: str) -> bool:
