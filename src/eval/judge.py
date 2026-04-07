@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, Optional
+import os
+import time
+from typing import Any, Dict, List, Optional
 from openai import OpenAI
 
 client = OpenAI()
@@ -112,3 +114,60 @@ def judge_record_with_llm(
         "judge_reason": parsed["reason"],
         "judge_confidence": parsed["confidence"],
     }
+
+
+def load_json(path: str) -> Any:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_json(path: str, data: Any) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+def judge_outputs_file(input_path: str, output_path: str, model: str = "gpt-5.4-mini", sleep_s: float = 0.0) -> None:
+    records: List[Dict[str, Any]] = load_json(input_path)
+    judged_records: List[Dict[str, Any]] = []
+
+    for i, record in enumerate(records, start=1):
+        try:
+            if not record["is_correct"] :
+                judged = judge_record_with_llm(record, record["output"], model=model)
+                merged = {**record, **judged}
+                judged_records.append(merged)
+                print(f"[{i}/{len(records)}] judged {record.get('id')}")
+        except Exception as e:
+            print(f"[{i}/{len(records)}] failed {record.get('id')}: {e}")
+            merged = {
+                **record,
+                "is_correct": None,
+                "is_hallucination": None,
+                "judge_reason": f"judge_failed: {str(e)}",
+                "judge_confidence": "low",
+            }
+            judged_records.append(merged)
+
+        if sleep_s > 0:
+            time.sleep(sleep_s)
+
+    save_json(output_path, judged_records)
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", required=True, help="Path to raw outputs JSON")
+    parser.add_argument("--output", required=True, help="Path to judged outputs JSON")
+    parser.add_argument("--model", default="gpt-5.4-mini")
+    parser.add_argument("--sleep", type=float, default=0.0)
+    args = parser.parse_args()
+
+    judge_outputs_file(
+        input_path=args.input,
+        output_path=args.output,
+        model=args.model,
+        sleep_s=args.sleep,
+    )
