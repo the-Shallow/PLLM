@@ -1,6 +1,7 @@
 from __future__ import annotations
 import re
 from typing import Any, Dict, List
+from .judge import judge_record_with_llm
 
 # ---------------------------------------------------------------------------
 # Rule-based phrase lists for each bucket type
@@ -146,6 +147,13 @@ def score_output(
     else:
         is_correct = scorer(output_text, record)
         is_hallucination = not is_correct
+
+
+        if not is_correct:
+            judged = judge_record_with_llm(record, output_text)
+            is_correct = judged.get("is_correct", is_correct)
+            is_hallucination = judged.get("is_hallucination", is_hallucination)
+            print(f"LLM judge override: is_correct={is_correct}, is_hallucination={is_hallucination}, reason={judged.get('judge_reason')}, confidence={judged.get('judge_confidence')}")
 
     # is_certain: avg_logprob closer to 0 = model was confident in its token choices.
     # lns_threshold=-2.0 means log-prob per token above -2.0 is considered "certain".
