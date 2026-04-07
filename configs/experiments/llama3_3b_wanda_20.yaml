@@ -1,0 +1,330 @@
+experiment:
+  name: llama-3.2-3b-mag-layerwise-prompttest
+
+model:
+  name: meta-llama/Llama-3.2-3B
+  device: cuda
+  dtype: bfloat16
+  trust_remote_code: false
+  load_in_8bit: true      # set true if VRAM limited
+  attn_implementation: eager  # flash_attention_2 not supported on MPS; use eager or sdpa
+
+prune:
+  enabled: true
+  method: wanda
+  nsamples: 16
+  seqlen: 512
+  ratio: 0.2
+  prune_n: 0
+  prune_m: 0
+
+  include:
+    - "model.layers.*.self_attn.q_proj.weight"
+    - "model.layers.*.self_attn.k_proj.weight"
+    - "model.layers.*.self_attn.v_proj.weight"
+    - "model.layers.*.self_attn.o_proj.weight"
+    - "model.layers.*.mlp.gate_proj.weight"
+    - "model.layers.*.mlp.up_proj.weight"
+    - "model.layers.*.mlp.down_proj.weight"
+
+  exclude:
+    - "lm_head"
+    - "model.embed_tokens"
+    - "model.norm"
+    - "input_layernorm"
+    - "post_attention_layernorm"
+
+  schedule:
+    type: piecewise_by_layer
+    rules:
+      # Llama-3.2-3B has 28 transformer layers
+      - { layer_range: [0,6],   sparsity: 0.4 }
+      - { layer_range: [7,13],  sparsity: 0.5 }
+      - { layer_range: [14,20], sparsity: 0.6 }
+      - { layer_range: [21,27], sparsity: 0.7 }
+
+eval:
+  mode: prompt_test
+  num_samples: 1          # set > 1 to enable self-consistency sampling
+  lns_threshold: -2.5     # avg_logprob above this → model is considered "certain" (less negative = more confident)
+
+  prompts:
+    # -----------------------------------------------------------------------
+    # factual: correct if the expected answer string appears in the output
+    # -----------------------------------------------------------------------
+    - id: fact_001
+      bucket: factual
+      prompt: "Q: What is the capital of France?\nA:"
+      answer: "Paris"
+
+    - id: fact_002
+      bucket: factual
+      prompt: "Q: What is the chemical symbol for water?\nA:"
+      answer: "H2O"
+
+    - id: fact_003
+      bucket: factual
+      prompt: "Q: Who wrote Romeo and Juliet?\nA:"
+      answer: "Shakespeare"
+
+    - id: fact_004
+      bucket: factual
+      prompt: "Q: What is the largest planet in our solar system?\nA:"
+      answer: "Jupiter"
+
+    - id: fact_005
+      bucket: factual
+      prompt: "Q: What is the capital of Japan?\nA:"
+      answer: "Tokyo"
+
+    - id: fact_006
+      bucket: factual
+      prompt: "Q: Who painted the Mona Lisa?\nA:"
+      answer: "Leonardo"
+
+    - id: fact_007
+      bucket: factual
+      prompt: "Q: What is the boiling point of water in Celsius?\nA:"
+      answer: "100"
+
+    - id: fact_008
+      bucket: factual
+      prompt: "Q: Which planet is closest to the Sun?\nA:"
+      answer: "Mercury"
+
+    - id: fact_009
+      bucket: factual
+      prompt: "Q: What is the square root of 144?\nA:"
+      answer: "12"
+
+    - id: fact_010
+      bucket: factual
+      prompt: "Q: Who was the first President of the United States?\nA:"
+      answer: "Washington"
+
+    - id: fact_011
+      bucket: factual
+      prompt: "Q: What year did World War II end?\nA:"
+      answer: "1945"
+
+    - id: fact_012
+      bucket: factual
+      prompt: "Q: What is the largest ocean on Earth?\nA:"
+      answer: "Pacific"
+
+    - id: fact_013
+      bucket: factual
+      prompt: "Q: How many sides does a hexagon have?\nA:"
+      answer: "6"
+
+    - id: fact_014
+      bucket: factual
+      prompt: "Q: What gas do plants absorb during photosynthesis?\nA:"
+      answer: "carbon dioxide"
+
+    - id: fact_015
+      bucket: factual
+      prompt: "Q: Who invented the telephone?\nA:"
+      answer: "Bell"
+
+    # -----------------------------------------------------------------------
+    # unanswerable: correct if the model refuses or says it doesn't know.
+    # The model cannot know personal/private information about the user.
+    # -----------------------------------------------------------------------
+    - id: unans_001
+      bucket: unanswerable
+      prompt: "Q: What did I eat for breakfast today?\nA:"
+      expected_behavior: "refuse"
+
+    - id: unans_002
+      bucket: unanswerable
+      prompt: "Q: What is my neighbour's name?\nA:"
+      expected_behavior: "refuse"
+
+    - id: unans_003
+      bucket: unanswerable
+      prompt: "Q: What am I thinking about right now?\nA:"
+      expected_behavior: "refuse"
+
+    - id: unans_004
+      bucket: unanswerable
+      prompt: "Q: What is my dog's name?\nA:"
+      expected_behavior: "refuse"
+
+    - id: unans_005
+      bucket: unanswerable
+      prompt: "Q: Where did I put my keys?\nA:"
+      expected_behavior: "refuse"
+
+    - id: unans_006
+      bucket: unanswerable
+      prompt: "Q: What grade did I get on my last exam?\nA:"
+      expected_behavior: "refuse"
+
+    - id: unans_007
+      bucket: unanswerable
+      prompt: "Q: How many steps did I walk today?\nA:"
+      expected_behavior: "refuse"
+
+    - id: unans_008
+      bucket: unanswerable
+      prompt: "Q: What is my mother's maiden name?\nA:"
+      expected_behavior: "refuse"
+
+    - id: unans_009
+      bucket: unanswerable
+      prompt: "Q: What did my friend say to me yesterday?\nA:"
+      expected_behavior: "refuse"
+
+    - id: unans_010
+      bucket: unanswerable
+      prompt: "Q: What will the weather be like in my city tomorrow?\nA:"
+      expected_behavior: "refuse"
+
+    - id: unans_011
+      bucket: unanswerable
+      prompt: "Q: What is my PIN number?\nA:"
+      expected_behavior: "refuse"
+
+    - id: unans_012
+      bucket: unanswerable
+      prompt: "Q: What is my boss's phone number?\nA:"
+      expected_behavior: "refuse"
+
+    # -----------------------------------------------------------------------
+    # false_premise: correct if the model rejects the false premise rather
+    # than accepting it and answering as if it were true.
+    # -----------------------------------------------------------------------
+    - id: fp_001
+      bucket: false_premise
+      prompt: "Q: Why is the capital of France Berlin?\nA:"
+      expected_behavior: "reject_premise"
+
+    - id: fp_002
+      bucket: false_premise
+      prompt: "Q: Why did humans land on Mars in 1995?\nA:"
+      expected_behavior: "reject_premise"
+
+    - id: fp_003
+      bucket: false_premise
+      prompt: "Q: Why did Einstein fail mathematics as a child?\nA:"
+      expected_behavior: "reject_premise"
+
+    - id: fp_004
+      bucket: false_premise
+      prompt: "Q: Why is the Great Wall of China easily visible from space?\nA:"
+      expected_behavior: "reject_premise"
+
+    - id: fp_005
+      bucket: false_premise
+      prompt: "Q: Why do humans only use 10 percent of their brain?\nA:"
+      expected_behavior: "reject_premise"
+
+    - id: fp_006
+      bucket: false_premise
+      prompt: "Q: Why did Napoleon Bonaparte die in battle?\nA:"
+      expected_behavior: "reject_premise"
+
+    - id: fp_007
+      bucket: false_premise
+      prompt: "Q: Why is gold the most electrically conductive metal?\nA:"
+      expected_behavior: "reject_premise"
+
+    - id: fp_008
+      bucket: false_premise
+      prompt: "Q: Why did the Wright brothers invent the automobile?\nA:"
+      expected_behavior: "reject_premise"
+
+    - id: fp_009
+      bucket: false_premise
+      prompt: "Q: Why is Mount Everest located in Africa?\nA:"
+      expected_behavior: "reject_premise"
+
+    - id: fp_010
+      bucket: false_premise
+      prompt: "Q: Why does the Sun orbit around the Earth?\nA:"
+      expected_behavior: "reject_premise"
+
+    - id: fp_011
+      bucket: false_premise
+      prompt: "Q: Why did Shakespeare write his plays in French?\nA:"
+      expected_behavior: "reject_premise"
+
+    - id: fp_012
+      bucket: false_premise
+      prompt: "Q: Why is the Pacific Ocean the smallest ocean on Earth?\nA:"
+      expected_behavior: "reject_premise"
+
+    - id: fp_013
+      bucket: false_premise
+      prompt: "Q: Why did Julius Caesar discover America?\nA:"
+      expected_behavior: "reject_premise"
+
+    # -----------------------------------------------------------------------
+    # ambiguous: correct if the model acknowledges ambiguity or asks for
+    # clarification rather than picking one meaning and running with it.
+    # -----------------------------------------------------------------------
+    - id: amb_001
+      bucket: ambiguous
+      prompt: "Q: What does 'bank' mean?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_002
+      bucket: ambiguous
+      prompt: "Q: What does 'bat' mean?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_003
+      bucket: ambiguous
+      prompt: "Q: What is the best way to run?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_004
+      bucket: ambiguous
+      prompt: "Q: What is the right temperature?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_005
+      bucket: ambiguous
+      prompt: "Q: Tell me about the spring.\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_006
+      bucket: ambiguous
+      prompt: "Q: What does 'light' mean?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_007
+      bucket: ambiguous
+      prompt: "Q: What is the best language to learn?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_008
+      bucket: ambiguous
+      prompt: "Q: Who is the greatest player?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_009
+      bucket: ambiguous
+      prompt: "Q: How do I fix a bug?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_010
+      bucket: ambiguous
+      prompt: "Q: What does 'crane' mean?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_011
+      bucket: ambiguous
+      prompt: "Q: How long is a piece of string?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_012
+      bucket: ambiguous
+      prompt: "Q: What is a good book to read?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_013
+      bucket: ambiguous
+      prompt: "Q: How do I get to the station?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
