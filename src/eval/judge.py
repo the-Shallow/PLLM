@@ -133,11 +133,11 @@ def judge_outputs_file(input_path: str, output_path: str, model: str = "gpt-5.4-
 
     for i, record in enumerate(records, start=1):
         try:
-            if not record["is_correct"] :
-                judged = judge_record_with_llm(record, record["output"], model=model)
-                merged = {**record, **judged}
-                judged_records.append(merged)
-                print(f"[{i}/{len(records)}] judged {record.get('id')}")
+            # if not record["is_correct"] :
+            judged = judge_record_with_llm(record, record["output"], model=model)
+            merged = {**record, **judged}
+            judged_records.append(merged)
+            print(f"[{i}/{len(records)}] judged {record.get('id')}")
         except Exception as e:
             print(f"[{i}/{len(records)}] failed {record.get('id')}: {e}")
             merged = {
