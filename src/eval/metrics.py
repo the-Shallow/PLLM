@@ -57,12 +57,12 @@ def _extract_response(output: str) -> str:
        Truncate at the first "\\nQ:" to keep only the real first answer.
     """
     # Step 1: strip echoed prompt if present (safety fallback)
-    parts = output.rsplit("A:", 1)
-    response = parts[-1] if len(parts) > 1 else output
+    # parts = output.rsplit("A:", 1)
+    # response = parts[-1] if len(parts) > 1 else output
 
     # Step 2: cut off overgeneration — anything after the first new question is noise.
     # Use \n+ to handle models that insert one or two blank lines before the next Q.
-    response = re.split(r'\n+Q:', response)[0]
+    response = re.split(r'\n+Q:', output)[0].strip()
 
     return response
 
