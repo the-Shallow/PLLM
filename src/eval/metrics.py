@@ -207,6 +207,11 @@ def aggregate_metrics(scored_outputs: List[Dict[str, Any]]) -> Dict[str, Any]:
     lns_values = [s["lns_score"] for s in scored_outputs if "lns_score" in s]
     # ent_values = [s["entropy"] for s in scored_outputs if "entropy" in s]  # entropy disabled
 
+    y_true, y_score = extract_binary_labels_and_scores(scored_outputs)
+    auroc = compute_auroc(y_true, y_score)
+    auprc = compute_auprc(y_true, y_score)
+    prr = compute_prr(y_true, y_score)
+    print(f"AUROC: {auroc}, AUPRC: {auprc}, PRR: {prr}")
     return {
         "num_prompts":                      all_n,
         "num_scored":                       n,
@@ -216,6 +221,9 @@ def aggregate_metrics(scored_outputs: List[Dict[str, Any]]) -> Dict[str, Any]:
         "avg_lns_score":                    round(sum(lns_values) / len(lns_values), 4) if lns_values else None,
         # "avg_entropy": round(sum(ent_values) / len(ent_values), 4) if ent_values else None,  # entropy disabled
         **bucket_counts,
+        "auroc": round(auroc, 4) if auroc is not None else None,
+        "auprc": round(auprc, 4) if auprc is not None else None,
+        "prr": round(prr, 4) if prr is not None else None,
     }
 
 
