@@ -232,10 +232,10 @@ def save_pr_curve(outputs: List[Dict[str, Any]], metrics: Dict[str, Any], out_di
     y_true, y_score = extract_binary_labels_scores(outputs)
     recalls , precisions = pr_points(y_true,y_score)
 
-    auroc = metrics.get("auroc",None)
+    auprc = metrics.get("auprc",None)
     positive_rate = sum(y_true) / len(y_true)
     fig, ax = plt.subplots(figsize=(7,5))
-    label = f"PR Curve = {auroc}"
+    label = f"PR Curve = {auprc}"
     ax.plot(recalls,precisions,linewidth=2, label=label)
     # ax.plot([0,1],[0,1], linestyle="--", linewidth=1, label="random")
     ax.axhline(y=positive_rate, linestyle="--", linewidth=1, label=f"random baseline {positive_rate}")
