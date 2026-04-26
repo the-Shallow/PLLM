@@ -6,7 +6,7 @@ profile: hazel
 model:
   name: meta-llama/Llama-3.1-8B-Instruct
   device: cuda
-  dtype: bfloat16
+  dtype: float16
   trust_remote_code: true
   load_in_8bit: false
   attn_implementation: flash_attention_2
@@ -39,6 +39,26 @@ prune:
       - { layer_range: [8,15], sparsity: 0.5 }
       - { layer_range: [16,23], sparsity: 0.6 }
       - { layer_range: [24,31], sparsity: 0.7 }
+
+
+fine_tune:
+  enabled: true
+  dataset: wikitext
+  max_rows: 1000
+  epochs: 10
+  batch_size: 8
+  lr: 1e-6
+  max_length: 256
+  preserve_pruned: true
+
+  use_lora: true
+  lora_r: 4
+  lora_alpha: 8
+  lora_dropout: 0
+  target_modules:
+    - q_proj
+    - k_proj
+
 
 eval:
   mode: prompt_test

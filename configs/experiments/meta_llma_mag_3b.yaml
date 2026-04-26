@@ -8,7 +8,7 @@ model:
   dtype: float16
   trust_remote_code: true
   load_in_8bit: false
-  load_in_4bit: true
+  load_in_4bit: false
   attm_implementation: flash_attention_2
 
 prune:
@@ -40,15 +40,15 @@ fine_tune:
   enabled: true
   dataset: wikitext
   max_rows: 1000
-  epochs: 1
-  batch_size: 1
-  lr: 2e-4
-  max_length: 512
+  epochs: 10
+  batch_size: 8
+  lr: 1e-6
+  max_length: 256
   preserve_pruned: true
 
   use_lora: true
-  lora_r: 2
-  lora_alpha: 4
+  lora_r: 4
+  lora_alpha: 8
   lora_dropout: 0
   target_modules:
     - q_proj
