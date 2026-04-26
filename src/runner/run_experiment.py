@@ -30,7 +30,7 @@ def run_experiment(cfg, profile_cfg):
     run_id = cfg["experiment"]["name"] + "_" + str(int(time.time()))
 
     # out_dir = os.path.join("outputs", run_id)
-    base_output_dir = get_path(profile_cfg,"output_dirs","outputs")
+    base_output_dir = get_path(profile_cfg,"output_dir","outputs")
     out_dir = os.path.join(base_output_dir, run_id)
     os.makedirs(out_dir, exist_ok=True)
 
