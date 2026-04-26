@@ -1,7 +1,0 @@
-{
-  "overall_sparsity": 0.0,
-  "num_params_masked": 196,
-  "sparsity_by_layer": {
-    "none": 0.0
-  }
-}
