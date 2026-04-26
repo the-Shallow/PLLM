@@ -6,11 +6,14 @@ import torch
 
 from src.models.load_model import load_model
 from src.pruning.registry import get_pruner
-from src.eval.datasets import load_prompts
+from src.eval.dataset_utils import load_prompts
 from src.eval.generate import generate_with_scores, generate_n_samples
 from src.eval.metrics import score_output, aggregate_metrics
 from src.runner.report import print_rich_table, save_charts
 from src.runner.logging import logger
+from src.pruning.mask_io import save_masks
+from src.finetune.masked_runner import run_masked_ft
+
 
 def get_path(profile_cfg, key, default):
     return profile_cfg.get("paths", {}).get(key, default)
@@ -43,6 +46,7 @@ def run_experiment(cfg, profile_cfg):
     # ------------------------------------------------------------------
     pr_cfg = cfg.get("prune", {})
     prune_metrics = None
+    masks = None
     if pr_cfg.get("enabled", False):
         logger.info(f"Pruning enabled. Method: {pr_cfg.get('method', 'magnitude')}")
         pruner = get_pruner(pr_cfg.get("method", "magnitude"))
@@ -59,6 +63,20 @@ def run_experiment(cfg, profile_cfg):
             "num_params_masked": summary["num_params_masked"],
         }
 
+
+    ft_cfg = cfg.get("fine_tune", {})
+    fine_tune_metrics = None
+
+    if ft_cfg.get("enabled", False):
+        logger.info("Fine Tuning enabled")
+        fine_tune_metrics = run_masked_ft(
+            model=model,
+            tokenizer=tokenizer,
+            fine_tune_cfg=ft_cfg,
+            profile_cfg=profile_cfg,
+            masks=masks,
+            device=device
+        )
     # ------------------------------------------------------------------
     # Evaluation
     # ------------------------------------------------------------------
@@ -157,6 +175,8 @@ def run_experiment(cfg, profile_cfg):
     metrics: Dict[str, Any] = {"run_id": run_id}
     if prune_metrics:
         metrics.update(prune_metrics)
+    if fine_tune_metrics:
+        metrics.update(fine_tune_metrics)
     if eval_metrics:
         metrics.update(eval_metrics)
 

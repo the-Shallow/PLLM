@@ -1,6 +1,7 @@
 from typing import Any, Dict, Tuple
 import torch, os
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from transformers import BitsAndBytesConfig
 
 DTYPE_MAP = {
     "float32": torch.float32,
@@ -111,17 +112,38 @@ def load_model(cfg, profile_cfg):
     if device_map is not None:
         model_kwargs["device_map"] = device_map
 
+    # if load_in_8bit:
+        # model_kwargs["load_in_8bit"] = True
+
+    # if load_in_4bit:
+    #     model_kwargs["load_in_4bit"] = True
+
     if load_in_8bit:
-        model_kwargs["load_in_8bit"] = True
+        model_kwargs["quantization_config"] = BitsAndBytesConfig(
+            load_in_8bit=True,
+        )
+        model_kwargs["device_map"] = device_map or "auto"
+
 
     if load_in_4bit:
-        model_kwargs["load_in_4bit"] = True
+        model_kwargs["quantization_config"] = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch_dtype,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type="nf4",
+        )
+        model_kwargs["device_map"] = device_map or "auto"
 
     model = AutoModelForCausalLM.from_pretrained(
         local_model_path,
         **model_kwargs
     )
-    if device_map is None:
+
+    model.config.use_cache = False
+    # if device_map is None:
+    #     model.to(device)
+
+    if device_map is None and not load_in_4bit and not load_in_8bit:
         model.to(device)
 
     model.eval()

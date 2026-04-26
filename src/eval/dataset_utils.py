@@ -1,7 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
+import json
 from typing import Any, Dict, List, Optional
-
+from datasets import load_dataset
 
 @dataclass
 class PromptRecord:
@@ -58,3 +59,44 @@ def load_prompts(eval_cfg: Dict[str, Any]) -> List[PromptRecord]:
             ))
 
     return records
+
+
+
+def load_alpaca_1000():
+    ds = load_dataset("tatsu-lab/alpaca", split="train")
+    ds = ds.select(range(1000))
+    return ds
+
+def alpaca_to_eval_prompts(example):
+    instruction = example["instruction"].strip()
+    input_text = example["input"].strip()
+
+    if input_text:
+        prompt = f"Q: {instruction} {input_text}"
+    else:
+        prompt = f"Q: {instruction}"
+    
+    return {
+        "prompt": prompt,
+        "ground_truth": example["output"].strip()
+    }
+
+
+def save_prompts(dataset, path="alpaca_1000_eval.json"):
+    data = [
+        {
+            "prompt": x["prompt"],
+            "ground_truth": x["ground_truth"]
+        }
+        for x in dataset
+    ]
+    
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2)
+
+
+
+if __name__ == "__main__":
+    ds = load_alpaca_1000()
+    eval_prompts = ds.map(alpaca_to_eval_prompts)
+    save_prompts(eval_prompts)    
