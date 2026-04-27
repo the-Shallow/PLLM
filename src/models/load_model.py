@@ -28,9 +28,12 @@ def load_model(cfg):
 
     if(load_in_8bit):
         quantization_config = BitsAndBytesConfig(load_in_8bit=True)
-        model = AutoModelForCausalLM.from_pretrained(name, quantization_config=quantization_config, device_map="cuda:0")
+        model = AutoModelForCausalLM.from_pretrained(name, quantization_config=quantization_config, device_map="cuda:0", torch_dtype=torch.float16)
     else:
         model = AutoModelForCausalLM.from_pretrained(name, torch_dtype=torch_dtype, device_map="cuda:0")
+
+    model.config.pad_token_id = tokenizer.pad_token_id
+    model.generation_config.pad_token_id = tokenizer.pad_token_id
     
     model.to(device)
     model.eval()
