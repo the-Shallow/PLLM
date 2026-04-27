@@ -6,7 +6,7 @@ model:
   device: cuda
   dtype: bfloat16
   trust_remote_code: false
-  load_in_8bit: false      # set true if VRAM limited
+  load_in_8bit: true      # set true if VRAM limited
   attn_implementation: eager  # flash_attention_2 not supported on MPS; use eager or sdpa
 
 prune:

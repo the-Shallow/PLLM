@@ -10,8 +10,10 @@ model:
   attn_implementation: eager  # flash_attention_2 not supported on MPS; use eager or sdpa
 
 prune:
-  enabled: false
+  enabled: true
   method: wanda
+  nsamples: 16
+  seqlen: 512
   ratio: 0.2
   prune_n: 0
   prune_m: 0
