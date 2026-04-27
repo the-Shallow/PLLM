@@ -1,0 +1,9 @@
+{
+  "overall_sparsity": 0.1998824037256695,
+  "num_tensors_masked": 196,
+  "num_params_masked": 563383004,
+  "total_params": 2818572288,
+  "sparsity_by_layer": {
+    "none": 0.1998824037256695
+  }
+}

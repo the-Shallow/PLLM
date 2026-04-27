@@ -1,0 +1,15 @@
+{
+  "run_id": "llama-3.2-3b-wanda-2-4_1775663470",
+  "prune_summary": 0.5,
+  "num_params_masked": 1409286144,
+  "num_prompts": 53,
+  "num_scored": 53,
+  "accuracy": 0.0755,
+  "hallucination_rate": 0.9245,
+  "overconfident_hallucination_rate": 0.6226,
+  "avg_lns_score": -2.2915,
+  "correct_certain": 4,
+  "correct_uncertain": 0,
+  "incorrect_certain": 33,
+  "incorrect_uncertain": 16
+}
