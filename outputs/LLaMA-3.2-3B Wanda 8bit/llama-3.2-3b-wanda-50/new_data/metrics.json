@@ -1,0 +1,15 @@
+{
+  "num_prompts": 53,
+  "num_scored": 53,
+  "accuracy": 0.2075,
+  "hallucination_rate": 0.8113,
+  "overconfident_hallucination_rate": 0.7925,
+  "avg_lns_score": -1.5659,
+  "correct_certain": 11,
+  "correct_uncertain": 0,
+  "incorrect_certain": 42,
+  "incorrect_uncertain": 0,
+  "auroc": 0.8377,
+  "auprc": 0.9395,
+  "prr": 0.695
+}

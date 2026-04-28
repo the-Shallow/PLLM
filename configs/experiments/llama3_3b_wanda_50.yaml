@@ -1,19 +1,22 @@
 experiment:
-  name: llama-3.2-3b-mag-layerwise-prompttest
+  name: llama-3.2-3b-wanda-50
 
 model:
   name: meta-llama/Llama-3.2-3B
   device: cuda
   dtype: bfloat16
   trust_remote_code: false
-  load_in_8bit: true      # set true if VRAM limited
+  load_in_8bit: false      # set true if VRAM limited
   attn_implementation: eager  # flash_attention_2 not supported on MPS; use eager or sdpa
 
 prune:
   enabled: true
   method: wanda
-  nsamples: 16
+  nsamples: 32
   seqlen: 512
+  ratio: 0.5
+  prune_n: 0
+  prune_m: 0
 
   include:
     - "model.layers.*.self_attn.q_proj.weight"
