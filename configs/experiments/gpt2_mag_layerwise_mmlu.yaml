@@ -8,7 +8,7 @@ model:
   dtype: fp32
 
 prune:
-  enabled: false
+  enabled: true
   method: magnitude
   include:
     - "transformer.h.*.attn.c_attn.weight"

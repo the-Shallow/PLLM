@@ -160,11 +160,11 @@ def run_masked_ft(model, tokenizer, fine_tune_cfg, profile_cfg, masks, device):
 
             # print("Grad norm:", total_norm.item())
 
-            if guard is not None and not use_lora:
+            if guard is not None:
                 guard.zero_pruned_gradients()
             optimizer.step()
 
-            if guard is not None and not use_lora:
+            if guard is not None:
                 guard.apply_masks()
             optimizer.zero_grad(set_to_none=True)
 

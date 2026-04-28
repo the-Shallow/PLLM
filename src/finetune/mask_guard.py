@@ -16,7 +16,7 @@ class MaskedFineTuneGuard:
     
     @torch.no_grad()
     def apply_masks(self):
-        print(self.masks)
+        # print(self.masks)
         for name, mask in self.masks.items():
             param = self.name_to_param[name]
             mask = mask.to(device=param.device, dtype=param.dtype)
