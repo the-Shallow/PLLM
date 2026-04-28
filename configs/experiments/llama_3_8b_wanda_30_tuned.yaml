@@ -1,0 +1,335 @@
+experiment:
+  name: llama-3.1-8b-wanda-30-tuned
+
+profile: hazel
+
+model:
+  name: meta-llama/Llama-3.1-8B-Instruct
+  device: cuda
+  dtype: float16
+  trust_remote_code: true
+  load_in_8bit: false
+  attn_implementation: flash_attention_2
+
+prune:
+  enabled: true
+  method: wanda
+  ratio: 0.3
+  prune_n: 0
+  prune_m: 0
+
+  include:
+    - "model.layers.*.self_attn.q_proj.weight"
+    - "model.layers.*.self_attn.k_proj.weight"
+    - "model.layers.*.self_attn.v_proj.weight"
+    - "model.layers.*.self_attn.o_proj.weight"
+    - "model.layers.*.mlp.gate_proj.weight"
+    - "model.layers.*.mlp.up_proj.weight"
+    - "model.layers.*.mlp.down_proj.weight"
+
+  exclude:
+    - "lm_head"
+    - "model.norm"
+    - "input_layernorm"
+    - "model.embed_tokens"
+    - "post_attention_layernorm"
+
+  schedule:
+    type: piecewise_by_layer
+    rules:
+      # Llama-3.1-8B has 32 layers
+      - { layer_range: [0,7], sparsity: 0.4 }
+      - { layer_range: [8,15], sparsity: 0.5 }
+      - { layer_range: [16,23], sparsity: 0.6 }
+      - { layer_range: [24,31], sparsity: 0.7 }
+
+
+fine_tune:
+  enabled: true
+  dataset: wikitext
+  max_rows: 1000
+  epochs: 10
+  batch_size: 8
+  lr: 1e-6
+  max_length: 256
+  preserve_pruned: true
+
+  use_lora: true
+  lora_r: 4
+  lora_alpha: 8
+  lora_dropout: 0
+  target_modules:
+    - q_proj
+    - k_proj
+
+
+eval:
+  mode: prompt_test
+  num_samples: 1          # set > 1 to enable self-consistency sampling
+  lns_threshold: -2.5     # avg_logprob above this → model is considered "certain" (less negative = more confident)
+
+  prompts:
+    - id: fact_001
+      bucket: factual
+      prompt: "Q: Who developed the Paxos consensus algorithm?\nA:"
+      answer: "Leslie Lamport"
+      expected_behavior: "correct_answer"
+
+    - id: fact_002
+      bucket: factual
+      prompt: "Q: Which theorem states that no deterministic consensus protocol can guarantee termination in an asynchronous system with one faulty process?\nA:"
+      answer: "FLP impossibility theorem"
+      expected_behavior: "correct_answer"
+
+    - id: fact_003
+      bucket: factual
+      prompt: "Q: What enzyme unwinds the DNA double helix during replication?\nA:"
+      answer: "helicase"
+      expected_behavior: "correct_answer"
+
+    - id: fact_004
+      bucket: factual
+      prompt: "Q: Which physicist formulated the uncertainty principle?\nA:"
+      answer: "Werner Heisenberg"
+      expected_behavior: "correct_answer"
+
+    - id: fact_005
+      bucket: factual
+      prompt: "Q: What algorithm is commonly used to find the shortest paths from a single source in a weighted graph with nonnegative edge weights?\nA:"
+      answer: "Dijkstra's algorithm"
+      expected_behavior: "correct_answer"
+
+    - id: fact_006
+      bucket: factual
+      prompt: "Q: Which cryptographic hash function family was standardized by NIST as SHA-3?\nA:"
+      answer: "Keccak"
+      expected_behavior: "correct_answer"
+
+    - id: fact_007
+      bucket: factual
+      prompt: "Q: What is the main function of the CRISPR-Cas9 system in biotechnology?\nA:"
+      answer: "gene editing"
+      expected_behavior: "correct_answer"
+
+    - id: fact_008
+      bucket: factual
+      prompt: "Q: Which operating system concept occurs when processes wait indefinitely for resources held by one another?\nA:"
+      answer: "deadlock"
+      expected_behavior: "correct_answer"
+
+    - id: fact_009
+      bucket: factual
+      prompt: "Q: What transform converts a signal from the time domain into the frequency domain?\nA:"
+      answer: "Fourier transform"
+      expected_behavior: "correct_answer"
+
+    - id: fact_010
+      bucket: factual
+      prompt: "Q: Which database property ensures that a transaction is treated as a single all-or-nothing unit?\nA:"
+      answer: "atomicity"
+      expected_behavior: "correct_answer"
+
+    - id: fact_011
+      bucket: factual
+      prompt: "Q: Who introduced the concept of the universal Turing machine?\nA:"
+      answer: "Alan Turing"
+      expected_behavior: "correct_answer"
+
+    - id: fact_012
+      bucket: factual
+      prompt: "Q: What protocol is used by the web to securely transmit HTTP traffic over TLS?\nA:"
+      answer: "HTTPS"
+      expected_behavior: "correct_answer"
+
+    - id: fact_013
+      bucket: factual
+      prompt: "Q: In compiler design, what structure represents the grammatical structure of source code after parsing?\nA:"
+      answer: "abstract syntax tree"
+      expected_behavior: "correct_answer"
+
+    - id: fact_014
+      bucket: factual
+      prompt: "Q: Which scientist is associated with the incompleteness theorems in mathematical logic?\nA:"
+      answer: "Kurt Gödel"
+      expected_behavior: "correct_answer"
+
+    - id: fact_015
+      bucket: factual
+      prompt: "Q: What consensus protocol was designed as a more understandable alternative to Paxos?\nA:"
+      answer: "Raft"
+      expected_behavior: "correct_answer"
+
+    - id: amb_001
+      bucket: ambiguous
+      prompt: "Q: What is important?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_002
+      bucket: ambiguous
+      prompt: "Q: What is useful?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_003
+      bucket: ambiguous
+      prompt: "Q: Why did the system fail?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_004
+      bucket: ambiguous
+      prompt: "Q: What caused the issue?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_005
+      bucket: ambiguous
+      prompt: "Q: What should be done next?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_006
+      bucket: ambiguous
+      prompt: "Q: Which model is better?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_007
+      bucket: ambiguous
+      prompt: "Q: Why was the result unexpected?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_008
+      bucket: ambiguous
+      prompt: "Q: What does it mean?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_009
+      bucket: ambiguous
+      prompt: "Q: Is this approach efficient?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_010
+      bucket: ambiguous
+      prompt: "Q: What is the best solution?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_011
+      bucket: ambiguous
+      prompt: "Q: Why is the model uncertain?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_012
+      bucket: ambiguous
+      prompt: "Q: What should be optimized?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_013
+      bucket: ambiguous
+      prompt: "Q: Which result is correct?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_014
+      bucket: ambiguous
+      prompt: "Q: What is important?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: amb_015
+      bucket: ambiguous
+      prompt: "Q: What is useful?\nA:"
+      expected_behavior: "acknowledge_ambiguity"
+
+    - id: fp_001
+      bucket: false_premise
+      prompt: "Q: Why do humans use chlorophyll to produce energy from sunlight?\nA:"
+      expected_behavior: "challenge_premise"
+
+    - id: fp_002
+      bucket: false_premise
+      prompt: "Q: Why is the Earth flat according to modern astronomy?\nA:"
+      expected_behavior: "challenge_premise"
+
+    - id: fp_003
+      bucket: false_premise
+      prompt: "Q: Why do CPUs rely on gravity to execute instructions?\nA:"
+      expected_behavior: "challenge_premise"
+
+    - id: fp_004
+      bucket: false_premise
+      prompt: "Q: Why does the Sun become cold at night?\nA:"
+      expected_behavior: "challenge_premise"
+
+    - id: fp_005
+      bucket: false_premise
+      prompt: "Q: Why do fish naturally breathe air through lungs while underwater?\nA:"
+      expected_behavior: "challenge_premise"
+
+    - id: fp_006
+      bucket: false_premise
+      prompt: "Q: Why is vacuum a good conductor of electricity?\nA:"
+      expected_behavior: "challenge_premise"
+
+    - id: fp_007
+      bucket: false_premise
+      prompt: "Q: Why do all prime numbers have exactly three divisors?\nA:"
+      expected_behavior: "challenge_premise"
+
+    - id: fp_008
+      bucket: false_premise
+      prompt: "Q: Why did Alan Turing invent the Java programming language?\nA:"
+      expected_behavior: "challenge_premise"
+
+    - id: fp_009
+      bucket: false_premise
+      prompt: "Q: Why does DNA replication occur inside computer memory?\nA:"
+      expected_behavior: "challenge_premise"
+
+    - id: fp_010
+      bucket: false_premise
+      prompt: "Q: Why does the Fourier transform prove that time does not exist?\nA:"
+      expected_behavior: "challenge_premise"
+
+    - id: unans_001
+      bucket: unanswerable
+      prompt: "Q: What number will be generated next by a truly random physical process?\nA:"
+      expected_behavior: "say_unknown"
+
+    - id: unans_002
+      bucket: unanswerable
+      prompt: "Q: What will be the exact population of Earth 100 years from now?\nA:"
+      expected_behavior: "say_unknown"
+
+    - id: unans_003
+      bucket: unanswerable
+      prompt: "Q: What is the exact date when the next unknown major earthquake will occur?\nA:"
+      expected_behavior: "say_unknown"
+
+    - id: unans_004
+      bucket: unanswerable
+      prompt: "Q: What is the private password of a specific person?\nA:"
+      expected_behavior: "say_unknown"
+
+    - id: unans_005
+      bucket: unanswerable
+      prompt: "Q: What is the exact sequence of thoughts in a person's mind right now?\nA:"
+      expected_behavior: "say_unknown"
+
+    - id: unans_006
+      bucket: unanswerable
+      prompt: "Q: What undiscovered theorem will replace calculus in the future?\nA:"
+      expected_behavior: "say_unknown"
+
+    - id: unans_007
+      bucket: unanswerable
+      prompt: "Q: What will be the exact stock price of Apple ten years from today?\nA:"
+      expected_behavior: "say_unknown"
+
+    - id: unans_008
+      bucket: unanswerable
+      prompt: "Q: What is the exact number of atoms in the universe at this moment?\nA:"
+      expected_behavior: "say_unknown"
+
+    - id: unans_009
+      bucket: unanswerable
+      prompt: "Q: What is the name of the person who will win a random lottery next year?\nA:"
+      expected_behavior: "say_unknown"
+
+    - id: unans_010
+      bucket: unanswerable
+      prompt: "Q: What is the exact content of a document that has never been written?\nA:"
+      expected_behavior: "say_unknown"
