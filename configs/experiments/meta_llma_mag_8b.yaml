@@ -45,7 +45,7 @@ fine_tune:
   enabled: true
   dataset: wikitext
   max_rows: 1000
-  epochs: 10
+  epochs: 50
   batch_size: 8
   lr: 1e-6
   max_length: 256
@@ -58,6 +58,8 @@ fine_tune:
   target_modules:
     - q_proj
     - k_proj
+    - v_proj
+    - o_proj
 
   
 eval:
@@ -76,6 +78,24 @@ eval:
       bucket: factual
       prompt: "Q: Which theorem states that no deterministic consensus protocol can guarantee termination in an asynchronous system with one faulty process?\nA:"
       answer: "FLP impossibility theorem"
+      expected_behavior: "correct_answer"
+
+    - id: fact_016
+      bucket: factual
+      prompt: "Q: What is the name of the algorithm used to train neural networks via backpropagation?\nA:"
+      answer: "backpropagation"
+      expected_behavior: "correct_answer"
+
+    - id: fact_017
+      bucket: factual
+      prompt: "Q: Which protocol is used to resolve domain names into IP addresses?\nA:"
+      answer: "DNS"
+      expected_behavior: "correct_answer"
+
+    - id: fact_018
+      bucket: factual
+      prompt: "Q: What is the time complexity of binary search in a sorted array?\nA:"
+      answer: "O(log n)"
       expected_behavior: "correct_answer"
 
     - id: fact_003

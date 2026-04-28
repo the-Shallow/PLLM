@@ -64,6 +64,24 @@ eval:
       answer: "FLP impossibility theorem"
       expected_behavior: "correct_answer"
 
+    - id: fact_016
+      bucket: factual
+      prompt: "Q: What is the name of the algorithm used to train neural networks via backpropagation?\nA:"
+      answer: "backpropagation"
+      expected_behavior: "correct_answer"
+
+    - id: fact_017
+      bucket: factual
+      prompt: "Q: Which protocol is used to resolve domain names into IP addresses?\nA:"
+      answer: "DNS"
+      expected_behavior: "correct_answer"
+
+    - id: fact_018
+      bucket: factual
+      prompt: "Q: What is the time complexity of binary search in a sorted array?\nA:"
+      answer: "O(log n)"
+      expected_behavior: "correct_answer"
+
     - id: fact_003
       bucket: factual
       prompt: "Q: What enzyme unwinds the DNA double helix during replication?\nA:"
