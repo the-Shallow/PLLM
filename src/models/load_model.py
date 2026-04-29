@@ -86,8 +86,6 @@ def load_model(cfg, profile_cfg):
 
     dtype_str = cfg.get("dtype", "fp16")
     torch_dtype = dtype_map.get(dtype_str, torch.float16)
-    model.config.pad_token_id = tokenizer.pad_token_id
-    model.generation_config.pad_token_id = tokenizer.pad_token_id
 
     load_in_8bit = cfg.get("load_in_8bit", False)
     load_in_4bit = cfg.get("load_in_4bit", False)
